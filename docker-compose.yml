@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: skyguard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: skyguard_db
+      POSTGRES_USER: skyguard
+      POSTGRES_PASSWORD: skyguard123
+      TZ: Asia/Kolkata
+    ports:
+      - "5432:5432"
+    volumes:
+      - skyguard_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skyguard -d skyguard_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  skyguard_postgres_data:

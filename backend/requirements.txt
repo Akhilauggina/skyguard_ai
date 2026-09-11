@@ -1,0 +1,29 @@
+# ---------------------------------------------------------------------------
+# requirements.txt
+# Pinned (minimum-version) dependencies for SkyGuard AI backend.
+# Install with:  pip install -r requirements.txt
+# ---------------------------------------------------------------------------
+
+# Web framework
+fastapi>=0.115.0
+
+# ASGI server used to run the FastAPI app
+uvicorn[standard]>=0.30.0
+
+# ORM used to talk to PostgreSQL (and any other relational DB)
+SQLAlchemy>=2.0.30
+
+# Data validation / settings management (FastAPI's native validation layer)
+pydantic>=2.8.0
+
+# Settings management built on top of Pydantic v2 (reads .env files)
+pydantic-settings>=2.4.0
+
+# Loads variables from a .env file into the process environment
+python-dotenv>=1.0.1
+
+# PostgreSQL driver (binary build, no local libpq compilation needed)
+psycopg2-binary>=2.9.9
+
+# Database migrations for SQLAlchemy models (ready for future use)
+alembic>=1.13.2
