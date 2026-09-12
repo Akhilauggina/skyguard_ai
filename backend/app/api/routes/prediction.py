@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.crud.prediction import (
@@ -10,6 +10,8 @@ from app.crud.prediction import (
 )
 from app.db.dependencies import get_db
 from app.schemas.prediction import (
+    PredictRequest,
+    PredictResponse,
     PredictionCreate,
     PredictionResponse,
     PredictionUpdate,
@@ -43,6 +45,37 @@ def read_all_predictions(
     db: Session = Depends(get_db),
 ):
     return get_all_predictions(db)
+
+
+@router.post(
+    "/predict",
+    response_model=PredictResponse,
+    summary="Run ML prediction on weather data",
+    description=(
+        "Submit weather features (temperature, humidity, pressure, etc.) "
+        "and get back an anomaly prediction from the Isolation Forest model."
+    ),
+)
+def predict_weather_anomaly(payload: PredictRequest):
+    """Manually test the ML model with custom weather data."""
+    import time
+
+    try:
+        from app.services.prediction_service import predict_weather
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=f"ML model not available: {exc}",
+        )
+
+    start = time.perf_counter()
+    result = predict_weather(payload.model_dump())
+    elapsed_ms = (time.perf_counter() - start) * 1000
+
+    return PredictResponse(
+        prediction=result["prediction"],
+        score=result["score"],
+    )
 
 
 @router.get(

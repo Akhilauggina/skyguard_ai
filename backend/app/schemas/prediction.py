@@ -40,3 +40,21 @@ class PredictionResponse(PredictionBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class PredictRequest(BaseModel):
+    """Input features for the ML prediction model."""
+    temperature: float
+    humidity: float
+    pressure: float
+    wind_speed: float = 0.0
+    wind_direction: float = 0.0
+    visibility: float = 10.0
+    month: int = 1
+    hour: int = 12
+
+
+class PredictResponse(BaseModel):
+    """Result returned by the ML prediction model."""
+    prediction: str
+    score: float
+
