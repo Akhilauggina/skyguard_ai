@@ -33,3 +33,14 @@ class StationResponse(BaseModel):
     last_maintenance: Optional[date]
 
     model_config = ConfigDict(from_attributes=True)
+
+class StationUpdate(BaseModel):
+    station_code: str | None = None
+    name: str | None = None
+    city: str | None = None
+    state: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    status: str | None = None
+    installation_date: date | None = None
+    last_maintenance: date | None = None

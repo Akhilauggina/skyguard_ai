@@ -33,3 +33,47 @@ def get_all_stations(db: Session):
     Return all weather stations.
     """
     return db.query(Station).all()
+
+
+from fastapi import HTTPException
+
+from app.schemas.station import StationUpdate
+
+
+def get_station_by_id(db: Session, station_id: int) -> Station:
+    station = db.query(Station).filter(Station.id == station_id).first()
+
+    if station is None:
+        raise HTTPException(status_code=404, detail="Station not found")
+
+    return station
+
+
+def update_station(
+    db: Session,
+    station_id: int,
+    station_data: StationUpdate,
+) -> Station:
+
+    station = get_station_by_id(db, station_id)
+
+    update_data = station_data.model_dump(exclude_unset=True)
+
+    for key, value in update_data.items():
+        setattr(station, key, value)
+
+    db.commit()
+    db.refresh(station)
+
+    return station
+
+
+def delete_station(db: Session, station_id: int):
+
+    station = get_station_by_id(db, station_id)
+
+    db.delete(station)
+
+    db.commit()
+
+    return {"message": "Station deleted successfully"}
