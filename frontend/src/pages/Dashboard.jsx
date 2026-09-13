@@ -4,6 +4,7 @@ import {
   MdCloud,
   MdInsights,
   MdWarning,
+  MdRefresh,
 } from "react-icons/md";
 import {
   AreaChart,
@@ -22,26 +23,42 @@ export default function Dashboard() {
   const [readings, setReadings] = useState([]);
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fetchingLive, setFetchingLive] = useState(false);
+
+  async function fetchData() {
+    try {
+      const [stRes, wrRes, prRes] = await Promise.allSettled([
+        API.get("/stations"),
+        API.get("/weather-readings"),
+        API.get("/predictions"),
+      ]);
+      if (stRes.status === "fulfilled") setStations(stRes.value.data);
+      if (wrRes.status === "fulfilled") setReadings(wrRes.value.data);
+      if (prRes.status === "fulfilled") setPredictions(prRes.value.data);
+    } catch (err) {
+      console.error("Dashboard fetch error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [stRes, wrRes, prRes] = await Promise.allSettled([
-          API.get("/stations"),
-          API.get("/weather-readings"),
-          API.get("/predictions"),
-        ]);
-        if (stRes.status === "fulfilled") setStations(stRes.value.data);
-        if (wrRes.status === "fulfilled") setReadings(wrRes.value.data);
-        if (prRes.status === "fulfilled") setPredictions(prRes.value.data);
-      } catch (err) {
-        console.error("Dashboard fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
     fetchData();
   }, []);
+
+  const handleFetchLiveWeather = async () => {
+    setFetchingLive(true);
+    try {
+      await API.post("/weather-readings/fetch-live");
+      await fetchData();
+      alert("Live weather updated successfully.");
+    } catch (err) {
+      console.error("Fetch live weather error:", err);
+      alert(err.response?.data?.detail || "Failed to fetch live weather");
+    } finally {
+      setFetchingLive(false);
+    }
+  };
 
   const anomalyCount = predictions.filter((p) => p.is_anomaly).length;
 
@@ -68,7 +85,17 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Dashboard</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <button
+          onClick={handleFetchLiveWeather}
+          disabled={fetchingLive}
+          className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-50"
+        >
+          <MdRefresh className={fetchingLive ? "animate-spin" : ""} />
+          {fetchingLive ? "Fetching..." : "Fetch Live Weather"}
+        </button>
+      </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

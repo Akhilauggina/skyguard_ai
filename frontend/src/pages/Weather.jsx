@@ -16,6 +16,7 @@ export default function Weather() {
   const [readings, setReadings] = useState([]);
   const [stations, setStations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     station_id: "",
@@ -46,20 +47,40 @@ export default function Weather() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSaving(true);
     try {
-      await API.post("/weather-readings", {
+      const res = await API.post("/weather-readings", {
         station_id: parseInt(form.station_id),
         temperature: parseFloat(form.temperature),
         pressure: parseFloat(form.pressure),
         humidity: parseFloat(form.humidity),
         recorded_at: new Date(form.recorded_at).toISOString(),
       });
+
+      // Check if auto-prediction was created
+      if (res.data && res.data.id) {
+        // Fetch the latest prediction for this reading
+        try {
+          const predRes = await API.get("/predictions?reading_id=" + res.data.id);
+          if (predRes.data && predRes.data.length > 0) {
+            const pred = predRes.data[predRes.data.length - 1];
+            alert(`Weather reading created!\nPrediction: ${pred.is_anomaly ? "Anomaly" : "Normal"}\nSeverity: ${pred.severity}\nConfidence: ${(pred.confidence_score * 100).toFixed(1)}%`);
+          } else {
+            alert("Weather reading created successfully!");
+          }
+        } catch {
+          alert("Weather reading created successfully (prediction pending)");
+        }
+      }
+
       setShowForm(false);
       setForm({ station_id: "", temperature: "", pressure: "", humidity: "", recorded_at: "" });
       fetchData();
     } catch (err) {
       console.error("Error creating reading:", err);
       alert(err.response?.data?.detail || "Failed to create reading");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -170,9 +191,10 @@ export default function Weather() {
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+              disabled={saving}
+              className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
             >
-              Create
+              {saving ? "Creating..." : "Create"}
             </button>
           </div>
         </form>

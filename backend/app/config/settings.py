@@ -61,6 +61,11 @@ class Settings(BaseSettings):
     # --- Security ----------------------------------------------------------------
     SECRET_KEY: str = "change-this-to-a-long-random-string"
 
+    # --- OpenWeather API ---------------------------------------------------------
+    OPENWEATHER_API_KEY: str = ""
+    OPENWEATHER_LATITUDE: float = 22.654739
+    OPENWEATHER_LONGITUDE: float = 88.446722
+
     # Tells pydantic-settings where to load environment variables from and
     # how to parse the .env file (UTF-8, case-sensitive keys).
     model_config = SettingsConfigDict(

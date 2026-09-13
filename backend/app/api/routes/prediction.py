@@ -42,8 +42,11 @@ def create_new_prediction(
     summary="Get all predictions",
 )
 def read_all_predictions(
+    reading_id: int | None = None,
     db: Session = Depends(get_db),
 ):
+    if reading_id:
+        return db.query(Prediction).filter(Prediction.reading_id == reading_id).all()
     return get_all_predictions(db)
 
 

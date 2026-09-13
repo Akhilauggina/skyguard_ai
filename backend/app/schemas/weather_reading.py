@@ -28,3 +28,10 @@ class WeatherReadingResponse(WeatherReadingBase):
     id: int
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class LiveWeatherResponse(BaseModel):
+    """Response for live weather fetch endpoint."""
+
+    weather: dict
+    prediction: dict
