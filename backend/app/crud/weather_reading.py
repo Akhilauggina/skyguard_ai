@@ -33,6 +33,10 @@ def create_weather_reading(
         from app.services.prediction_service import predict_weather
 
         # Prepare features for ML model
+        recorded_dt = db_reading.recorded_at
+        if isinstance(recorded_dt, str):
+            recorded_dt = datetime.fromisoformat(recorded_dt.replace("Z", "+00:00"))
+        
         features = {
             "temperature": db_reading.temperature,
             "humidity": db_reading.humidity,
@@ -40,8 +44,8 @@ def create_weather_reading(
             "wind_speed": getattr(db_reading, "wind_speed", 0.0) or 0.0,
             "wind_direction": getattr(db_reading, "wind_direction", 0.0) or 0.0,
             "visibility": getattr(db_reading, "visibility", 10.0) or 10.0,
-            "month": datetime.fromisoformat(db_reading.recorded_at.replace("Z", "+00:00")).month,
-            "hour": datetime.fromisoformat(db_reading.recorded_at.replace("Z", "+00:00")).hour,
+            "month": recorded_dt.month,
+            "hour": recorded_dt.hour,
         }
 
         start_time = time.perf_counter()
@@ -63,6 +67,8 @@ def create_weather_reading(
     except Exception as e:
         # Log error but don't fail the weather reading creation
         print(f"Auto-prediction failed: {e}")
+        import traceback
+        traceback.print_exc()
 
     return db_reading
 
